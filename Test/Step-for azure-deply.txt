@@ -4,3 +4,6 @@ Step for Deploy code in azure
 2) Goto Project folder
 3)az webapp deployment source config-local-git --name wirevax --resource-group YellowCollar --query url --output tsv
 https://SIpes@wirevax.scm.azurewebsites.net/wirevax.git
+
+
+Hello Bhavik
