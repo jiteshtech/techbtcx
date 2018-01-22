@@ -19,19 +19,33 @@ package de.schildbach.wallet.ui.preference;
 
 import org.bitcoinj.core.VersionMessage;
 
+<<<<<<< HEAD
 import android.app.Activity;
 import android.content.Intent;
+=======
+import de.schildbach.wallet.Constants;
+import de.schildbach.wallet.WalletApplication;
+import de.schildbach.wallet_test.R;
+
+import android.app.Activity;
+import android.content.Intent;
+import android.content.pm.PackageInfo;
+>>>>>>> master
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.preference.PreferenceFragment;
+<<<<<<< HEAD
 import de.schildbach.wallet.Constants;
 import de.schildbach.wallet.WalletApplication;
 import se.btcx.wallet.R;
+=======
+>>>>>>> master
 
 /**
  * @author Andreas Schildbach
  */
+<<<<<<< HEAD
 public final class AboutFragment extends PreferenceFragment
 {
 	private Activity activity;
@@ -66,4 +80,39 @@ public final class AboutFragment extends PreferenceFragment
 		findPreference(KEY_ABOUT_MARKET_APP).setIntent(marketIntent);
 		findPreference(KEY_ABOUT_CREDITS_BITCOINJ).setTitle(getString(R.string.about_credits_bitcoinj_title, VersionMessage.BITCOINJ_VERSION));
 	}
+=======
+public final class AboutFragment extends PreferenceFragment {
+    private WalletApplication application;
+    private PackageManager packageManager;
+
+    private static final String KEY_ABOUT_VERSION = "about_version";
+    private static final String KEY_ABOUT_MARKET_APP = "about_market_app";
+    private static final String KEY_ABOUT_CREDITS_BITCOINJ = "about_credits_bitcoinj";
+
+    @Override
+    public void onAttach(final Activity activity) {
+        super.onAttach(activity);
+
+        this.application = (WalletApplication) activity.getApplication();
+        this.packageManager = activity.getPackageManager();
+    }
+
+    @Override
+    public void onCreate(final Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
+        addPreferencesFromResource(R.xml.preference_about);
+
+        final PackageInfo packageInfo = application.packageInfo();
+        findPreference(KEY_ABOUT_VERSION).setSummary(WalletApplication.versionLine(packageInfo));
+        Intent marketIntent = new Intent(Intent.ACTION_VIEW,
+                Uri.parse(String.format(Constants.MARKET_APP_URL, packageInfo.packageName)));
+        if (packageManager.resolveActivity(marketIntent, 0) == null)
+            marketIntent = new Intent(Intent.ACTION_VIEW,
+                    Uri.parse(String.format(Constants.WEBMARKET_APP_URL, packageInfo.packageName)));
+        findPreference(KEY_ABOUT_MARKET_APP).setIntent(marketIntent);
+        findPreference(KEY_ABOUT_CREDITS_BITCOINJ)
+                .setTitle(getString(R.string.about_credits_bitcoinj_title, VersionMessage.BITCOINJ_VERSION));
+    }
+>>>>>>> master
 }

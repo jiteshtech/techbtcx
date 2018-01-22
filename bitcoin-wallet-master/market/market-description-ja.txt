@@ -29,7 +29,10 @@ https://www.transifex.com/bitcoin-wallet/bitcoin-wallet/
 <b>推薦文</b>
 
 • 多くのモバイルウォレットのコードはBitcoin Walletをベースにしています。例: blockchain.info, BTCX.
+<<<<<<< HEAD
 • https://bitcoin.org の推奨モバイルウォレットです。
+=======
+>>>>>>> master
 • BitPayによって推奨されています。
 
 

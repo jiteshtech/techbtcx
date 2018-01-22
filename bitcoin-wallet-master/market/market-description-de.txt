@@ -29,7 +29,10 @@ https://www.transifex.com/bitcoin-wallet/bitcoin-wallet/
 <b>EMPFEHLUNGEN</b>
 
 • Viele mobile Wallets basieren auf Bitcoin Wallet. Beispiele: blockchain.info und BTCX.
+<<<<<<< HEAD
 • Von https://bitcoin.org empfohlenes mobiles Wallet.
+=======
+>>>>>>> master
 • Von BitPay empfohlen.
 
 

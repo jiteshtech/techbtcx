@@ -17,19 +17,26 @@
 
 package de.schildbach.wallet.util;
 
+<<<<<<< HEAD
 import java.io.File;
+=======
+>>>>>>> master
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.Reader;
+<<<<<<< HEAD
 import java.lang.reflect.Method;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+=======
+>>>>>>> master
 
 /**
  * @author Andreas Schildbach
  */
+<<<<<<< HEAD
 public class Io
 {
 	private static final Logger log = LoggerFactory.getLogger(Io.class);
@@ -82,4 +89,36 @@ public class Io
 			log.info("problem using undocumented chmod api", x);
 		}
 	}
+=======
+public class Io {
+    public static final long copy(final Reader reader, final StringBuilder builder) throws IOException {
+        return copy(reader, builder, 0);
+    }
+
+    public static final long copy(final Reader reader, final StringBuilder builder, final long maxChars)
+            throws IOException {
+        final char[] buffer = new char[256];
+        long count = 0;
+        int n = 0;
+        while (-1 != (n = reader.read(buffer))) {
+            builder.append(buffer, 0, n);
+            count += n;
+
+            if (maxChars != 0 && count > maxChars)
+                throw new IOException("Read more than the limit of " + maxChars + " characters");
+        }
+        return count;
+    }
+
+    public static final long copy(final InputStream is, final OutputStream os) throws IOException {
+        final byte[] buffer = new byte[1024];
+        long count = 0;
+        int n = 0;
+        while (-1 != (n = is.read(buffer))) {
+            os.write(buffer, 0, n);
+            count += n;
+        }
+        return count;
+    }
+>>>>>>> master
 }

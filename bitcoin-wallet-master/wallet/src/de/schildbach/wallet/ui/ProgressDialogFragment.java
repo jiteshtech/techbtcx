@@ -27,6 +27,7 @@ import android.os.Bundle;
 /**
  * @author Andreas Schildbach
  */
+<<<<<<< HEAD
 public class ProgressDialogFragment extends DialogFragment
 {
 	private static final String FRAGMENT_TAG = ProgressDialogFragment.class.getName();
@@ -82,4 +83,54 @@ public class ProgressDialogFragment extends DialogFragment
 
 		return ProgressDialog.show(activity, null, message, true);
 	}
+=======
+public class ProgressDialogFragment extends DialogFragment {
+    private static final String FRAGMENT_TAG = ProgressDialogFragment.class.getName();
+
+    private static final String KEY_MESSAGE = "message";
+
+    public static void showProgress(final FragmentManager fm, final String message) {
+        final ProgressDialogFragment fragment = instance(message);
+        fragment.show(fm, FRAGMENT_TAG);
+    }
+
+    public static void dismissProgress(final FragmentManager fm) {
+        final DialogFragment fragment = (DialogFragment) fm.findFragmentByTag(FRAGMENT_TAG);
+        fragment.dismiss();
+    }
+
+    private static ProgressDialogFragment instance(final String message) {
+        final ProgressDialogFragment fragment = new ProgressDialogFragment();
+
+        final Bundle args = new Bundle();
+        args.putString(KEY_MESSAGE, message);
+        fragment.setArguments(args);
+
+        return fragment;
+    }
+
+    private Activity activity;
+
+    @Override
+    public void onAttach(final Activity activity) {
+        super.onAttach(activity);
+
+        this.activity = activity;
+    }
+
+    @Override
+    public void onCreate(final Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
+        setCancelable(false);
+    }
+
+    @Override
+    public Dialog onCreateDialog(final Bundle savedInstanceState) {
+        final Bundle args = getArguments();
+        final String message = args.getString(KEY_MESSAGE);
+
+        return ProgressDialog.show(activity, null, message, true);
+    }
+>>>>>>> master
 }

@@ -23,6 +23,16 @@ import org.bitcoinj.core.Transaction;
 import org.bitcoinj.wallet.DeterministicUpgradeRequiresPassword;
 import org.bitcoinj.wallet.Wallet;
 
+<<<<<<< HEAD
+=======
+import com.google.common.util.concurrent.ListenableFuture;
+
+import de.schildbach.wallet.WalletApplication;
+import de.schildbach.wallet.service.BlockchainService;
+import de.schildbach.wallet.service.BlockchainState;
+import de.schildbach.wallet.ui.send.MaintenanceDialogFragment;
+
+>>>>>>> master
 import android.app.Activity;
 import android.app.Fragment;
 import android.app.FragmentManager;
@@ -33,6 +43,7 @@ import android.content.IntentFilter;
 import android.os.Bundle;
 import android.support.v4.content.LocalBroadcastManager;
 
+<<<<<<< HEAD
 import com.google.common.util.concurrent.ListenableFuture;
 
 import de.schildbach.wallet.WalletApplication;
@@ -126,4 +137,77 @@ public class MaybeMaintenanceFragment extends Fragment
 			throw new RuntimeException(x);
 		}
 	}
+=======
+/**
+ * @author Andreas Schildbach
+ */
+public class MaybeMaintenanceFragment extends Fragment {
+    private static final String FRAGMENT_TAG = MaybeMaintenanceFragment.class.getName();
+
+    public static void add(final FragmentManager fm) {
+        Fragment fragment = fm.findFragmentByTag(FRAGMENT_TAG);
+        if (fragment == null) {
+            fragment = new MaybeMaintenanceFragment();
+            fm.beginTransaction().add(fragment, FRAGMENT_TAG).commit();
+        }
+    }
+
+    private Wallet wallet;
+    private LocalBroadcastManager broadcastManager;
+    private boolean dialogWasShown = false;
+
+    @Override
+    public void onAttach(final Activity activity) {
+        super.onAttach(activity);
+
+        final WalletApplication application = ((AbstractWalletActivity) activity).getWalletApplication();
+        this.wallet = application.getWallet();
+        this.broadcastManager = LocalBroadcastManager.getInstance(activity);
+    }
+
+    @Override
+    public void onCreate(final Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
+        setRetainInstance(true);
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+
+        broadcastManager.registerReceiver(broadcastReceiver,
+                new IntentFilter(BlockchainService.ACTION_BLOCKCHAIN_STATE));
+    }
+
+    @Override
+    public void onPause() {
+        broadcastManager.unregisterReceiver(broadcastReceiver);
+
+        super.onPause();
+    }
+
+    private final BroadcastReceiver broadcastReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(final Context context, final Intent broadcast) {
+            final BlockchainState blockchainState = BlockchainState.fromIntent(broadcast);
+
+            if (!dialogWasShown && !blockchainState.replaying && maintenanceRecommended()) {
+                MaintenanceDialogFragment.show(getFragmentManager());
+                dialogWasShown = true;
+            }
+        }
+    };
+
+    private boolean maintenanceRecommended() {
+        try {
+            final ListenableFuture<List<Transaction>> result = wallet.doMaintenance(null, false);
+            return !result.get().isEmpty();
+        } catch (final DeterministicUpgradeRequiresPassword x) {
+            return true;
+        } catch (final Exception x) {
+            throw new RuntimeException(x);
+        }
+    }
+>>>>>>> master
 }

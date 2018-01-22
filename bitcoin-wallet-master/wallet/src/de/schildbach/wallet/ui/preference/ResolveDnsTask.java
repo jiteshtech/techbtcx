@@ -26,6 +26,7 @@ import android.os.Looper;
 /**
  * @author Andreas Schildbach
  */
+<<<<<<< HEAD
 public abstract class ResolveDnsTask
 {
 	private final Handler backgroundHandler;
@@ -75,4 +76,43 @@ public abstract class ResolveDnsTask
 	protected abstract void onSuccess(InetAddress address);
 
 	protected abstract void onUnknownHost();
+=======
+public abstract class ResolveDnsTask {
+    private final Handler backgroundHandler;
+    private final Handler callbackHandler;
+
+    public ResolveDnsTask(final Handler backgroundHandler) {
+        this.backgroundHandler = backgroundHandler;
+        this.callbackHandler = new Handler(Looper.myLooper());
+    }
+
+    public final void resolve(final String hostname) {
+        backgroundHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    final InetAddress address = InetAddress.getByName(hostname); // blocks on network
+
+                    callbackHandler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            onSuccess(address);
+                        }
+                    });
+                } catch (final UnknownHostException x) {
+                    callbackHandler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            onUnknownHost();
+                        }
+                    });
+                }
+            }
+        });
+    }
+
+    protected abstract void onSuccess(InetAddress address);
+
+    protected abstract void onUnknownHost();
+>>>>>>> master
 }

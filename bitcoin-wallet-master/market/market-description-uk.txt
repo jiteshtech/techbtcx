@@ -29,7 +29,10 @@ https://www.transifex.com/bitcoin-wallet/bitcoin-wallet/
 <b>РЕКОМЕНДАЦІЇ</b>
 
 • Багато мобільних гаманців мають за  основу код Bitcoin Wallet. Приклади: blockchain.info і BTCX.
+<<<<<<< HEAD
 • Мобільний гаманець рекомендований https://bitcoin.org
+=======
+>>>>>>> master
 • Рекомендується BitPay.
 
 

@@ -26,6 +26,11 @@ import org.bitcoinj.wallet.SendRequest;
 import org.bitcoinj.wallet.Wallet;
 import org.bitcoinj.wallet.Wallet.CompletionException;
 import org.bitcoinj.wallet.Wallet.CouldNotAdjustDownwards;
+<<<<<<< HEAD
+=======
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+>>>>>>> master
 
 import de.schildbach.wallet.Constants;
 
@@ -35,6 +40,7 @@ import android.os.Looper;
 /**
  * @author Andreas Schildbach
  */
+<<<<<<< HEAD
 public abstract class SendCoinsOfflineTask
 {
 	private final Wallet wallet;
@@ -141,4 +147,105 @@ public abstract class SendCoinsOfflineTask
 	}
 
 	protected abstract void onFailure(Exception exception);
+=======
+public abstract class SendCoinsOfflineTask {
+    private final Wallet wallet;
+    private final Handler backgroundHandler;
+    private final Handler callbackHandler;
+
+    private static final Logger log = LoggerFactory.getLogger(SendCoinsOfflineTask.class);
+
+    public SendCoinsOfflineTask(final Wallet wallet, final Handler backgroundHandler) {
+        this.wallet = wallet;
+        this.backgroundHandler = backgroundHandler;
+        this.callbackHandler = new Handler(Looper.myLooper());
+    }
+
+    public final void sendCoinsOffline(final SendRequest sendRequest) {
+        backgroundHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                org.bitcoinj.core.Context.propagate(Constants.CONTEXT);
+
+                try {
+                    log.info("sending: {}", sendRequest);
+                    final Transaction transaction = wallet.sendCoinsOffline(sendRequest); // can take long
+                    log.info("send successful, transaction committed: {}", transaction.getHashAsString());
+
+                    callbackHandler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            onSuccess(transaction);
+                        }
+                    });
+                } catch (final InsufficientMoneyException x) {
+                    final Coin missing = x.missing;
+                    if (missing != null)
+                        log.info("send failed, {} missing", missing.toFriendlyString());
+                    else
+                        log.info("send failed, insufficient coins");
+
+                    callbackHandler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            onInsufficientMoney(x.missing);
+                        }
+                    });
+                } catch (final ECKey.KeyIsEncryptedException x) {
+                    log.info("send failed, key is encrypted: {}", x.getMessage());
+
+                    callbackHandler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            onFailure(x);
+                        }
+                    });
+                } catch (final KeyCrypterException x) {
+                    log.info("send failed, key crypter exception: {}", x.getMessage());
+
+                    final boolean isEncrypted = wallet.isEncrypted();
+                    callbackHandler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            if (isEncrypted)
+                                onInvalidEncryptionKey();
+                            else
+                                onFailure(x);
+                        }
+                    });
+                } catch (final CouldNotAdjustDownwards x) {
+                    log.info("send failed, could not adjust downwards: {}", x.getMessage());
+
+                    callbackHandler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            onEmptyWalletFailed();
+                        }
+                    });
+                } catch (final CompletionException x) {
+                    log.info("send failed, cannot complete: {}", x.getMessage());
+
+                    callbackHandler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            onFailure(x);
+                        }
+                    });
+                }
+            }
+        });
+    }
+
+    protected abstract void onSuccess(Transaction transaction);
+
+    protected abstract void onInsufficientMoney(Coin missing);
+
+    protected abstract void onInvalidEncryptionKey();
+
+    protected void onEmptyWalletFailed() {
+        onFailure(new CouldNotAdjustDownwards());
+    }
+
+    protected abstract void onFailure(Exception exception);
+>>>>>>> master
 }

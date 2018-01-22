@@ -22,6 +22,7 @@ import java.util.concurrent.RejectedExecutionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+<<<<<<< HEAD
 import android.content.AsyncTaskLoader;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
@@ -30,11 +31,21 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.os.IBinder;
+=======
+import de.schildbach.wallet.ui.AbstractBindServiceActivity;
+
+import android.content.AsyncTaskLoader;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
+>>>>>>> master
 import android.support.v4.content.LocalBroadcastManager;
 
 /**
  * @author Andreas Schildbach
  */
+<<<<<<< HEAD
 public class BlockchainStateLoader extends AsyncTaskLoader<BlockchainState>
 {
 	private final LocalBroadcastManager broadcastManager;
@@ -110,4 +121,46 @@ public class BlockchainStateLoader extends AsyncTaskLoader<BlockchainState>
 			}
 		}
 	};
+=======
+public class BlockchainStateLoader extends AsyncTaskLoader<BlockchainState> {
+    private final AbstractBindServiceActivity activity;
+    private final LocalBroadcastManager broadcastManager;
+
+    private static final Logger log = LoggerFactory.getLogger(BlockchainStateLoader.class);
+
+    public BlockchainStateLoader(final AbstractBindServiceActivity activity) {
+        super(activity);
+        this.activity = activity;
+        this.broadcastManager = LocalBroadcastManager.getInstance(activity.getApplicationContext());
+    }
+
+    @Override
+    protected void onStartLoading() {
+        super.onStartLoading();
+        broadcastManager.registerReceiver(broadcastReceiver,
+                new IntentFilter(BlockchainService.ACTION_BLOCKCHAIN_STATE));
+    }
+
+    @Override
+    protected void onStopLoading() {
+        broadcastManager.unregisterReceiver(broadcastReceiver);
+        super.onStopLoading();
+    }
+
+    @Override
+    public BlockchainState loadInBackground() {
+        return activity.getBlockchainService().getBlockchainState();
+    }
+
+    private final BroadcastReceiver broadcastReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(final Context context, final Intent broadcast) {
+            try {
+                deliverResult(BlockchainState.fromIntent(broadcast));
+            } catch (final RejectedExecutionException x) {
+                log.info("rejected execution: " + BlockchainStateLoader.this.toString());
+            }
+        }
+    };
+>>>>>>> master
 }

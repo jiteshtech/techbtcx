@@ -19,12 +19,19 @@ package de.schildbach.wallet.ui.preference;
 
 import java.util.List;
 
+<<<<<<< HEAD
 import android.view.MenuItem;
 import se.btcx.wallet.R;
+=======
+import de.schildbach.wallet_test.R;
+
+import android.view.MenuItem;
+>>>>>>> master
 
 /**
  * @author Andreas Schildbach
  */
+<<<<<<< HEAD
 public final class PreferenceActivity extends android.preference.PreferenceActivity
 {
 	@Override
@@ -52,4 +59,29 @@ public final class PreferenceActivity extends android.preference.PreferenceActiv
 		return SettingsFragment.class.getName().equals(fragmentName) || DiagnosticsFragment.class.getName().equals(fragmentName)
 				|| AboutFragment.class.getName().equals(fragmentName);
 	}
+=======
+public final class PreferenceActivity extends android.preference.PreferenceActivity {
+    @Override
+    public void onBuildHeaders(final List<Header> target) {
+        loadHeadersFromResource(R.xml.preference_headers, target);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(final MenuItem item) {
+        switch (item.getItemId()) {
+        case android.R.id.home:
+            finish();
+            return true;
+        }
+
+        return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    protected boolean isValidFragment(final String fragmentName) {
+        return SettingsFragment.class.getName().equals(fragmentName)
+                || DiagnosticsFragment.class.getName().equals(fragmentName)
+                || AboutFragment.class.getName().equals(fragmentName);
+    }
+>>>>>>> master
 }

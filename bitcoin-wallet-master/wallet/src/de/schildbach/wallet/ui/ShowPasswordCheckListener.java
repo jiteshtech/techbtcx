@@ -26,6 +26,7 @@ import android.widget.EditText;
 /**
  * @author Andreas Schildbach
  */
+<<<<<<< HEAD
 public final class ShowPasswordCheckListener implements OnCheckedChangeListener
 {
 	private EditText[] passwordViews;
@@ -43,4 +44,20 @@ public final class ShowPasswordCheckListener implements OnCheckedChangeListener
 		for (final EditText passwordView : passwordViews)
 			passwordView.setTransformationMethod(transformationMethod);
 	}
+=======
+public final class ShowPasswordCheckListener implements OnCheckedChangeListener {
+    private EditText[] passwordViews;
+
+    public ShowPasswordCheckListener(final EditText... passwordViews) {
+        this.passwordViews = passwordViews;
+    }
+
+    @Override
+    public void onCheckedChanged(final CompoundButton buttonView, final boolean isChecked) {
+        final TransformationMethod transformationMethod = isChecked ? null : PasswordTransformationMethod.getInstance();
+
+        for (final EditText passwordView : passwordViews)
+            passwordView.setTransformationMethod(transformationMethod);
+    }
+>>>>>>> master
 }

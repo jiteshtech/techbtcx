@@ -17,13 +17,24 @@
 
 package de.schildbach.wallet.ui.preference;
 
+<<<<<<< HEAD
 import java.io.IOException;
+=======
+>>>>>>> master
 import java.util.Locale;
 
 import org.bitcoinj.crypto.DeterministicKey;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+<<<<<<< HEAD
+=======
+import de.schildbach.wallet.Constants;
+import de.schildbach.wallet.WalletApplication;
+import de.schildbach.wallet.ui.DialogBuilder;
+import de.schildbach.wallet_test.R;
+
+>>>>>>> master
 import android.app.Activity;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnClickListener;
@@ -31,16 +42,20 @@ import android.os.Bundle;
 import android.preference.Preference;
 import android.preference.PreferenceFragment;
 import android.preference.PreferenceScreen;
+<<<<<<< HEAD
 import de.schildbach.wallet.Constants;
 import de.schildbach.wallet.WalletApplication;
 import de.schildbach.wallet.ui.DialogBuilder;
 import de.schildbach.wallet.ui.ReportIssueDialogBuilder;
 import de.schildbach.wallet.util.CrashReporter;
 import se.btcx.wallet.R;
+=======
+>>>>>>> master
 
 /**
  * @author Andreas Schildbach
  */
+<<<<<<< HEAD
 public final class DiagnosticsFragment extends PreferenceFragment
 {
 	private Activity activity;
@@ -162,4 +177,68 @@ public final class DiagnosticsFragment extends PreferenceFragment
 				extendedKey.getCreationTimeSeconds());
 		ExtendedPublicKeyFragment.show(getFragmentManager(), (CharSequence) xpub);
 	}
+=======
+public final class DiagnosticsFragment extends PreferenceFragment {
+    private Activity activity;
+    private WalletApplication application;
+
+    private static final String PREFS_KEY_INITIATE_RESET = "initiate_reset";
+    private static final String PREFS_KEY_EXTENDED_PUBLIC_KEY = "extended_public_key";
+
+    private static final Logger log = LoggerFactory.getLogger(DiagnosticsFragment.class);
+
+    @Override
+    public void onAttach(final Activity activity) {
+        super.onAttach(activity);
+
+        this.activity = activity;
+        this.application = (WalletApplication) activity.getApplication();
+    }
+
+    @Override
+    public void onCreate(final Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
+        addPreferencesFromResource(R.xml.preference_diagnostics);
+    }
+
+    @Override
+    public boolean onPreferenceTreeClick(final PreferenceScreen preferenceScreen, final Preference preference) {
+        final String key = preference.getKey();
+
+        if (PREFS_KEY_INITIATE_RESET.equals(key)) {
+            handleInitiateReset();
+            return true;
+        } else if (PREFS_KEY_EXTENDED_PUBLIC_KEY.equals(key)) {
+            handleExtendedPublicKey();
+            return true;
+        }
+
+        return false;
+    }
+
+    private void handleInitiateReset() {
+        final DialogBuilder dialog = new DialogBuilder(activity);
+        dialog.setTitle(R.string.preferences_initiate_reset_title);
+        dialog.setMessage(R.string.preferences_initiate_reset_dialog_message);
+        dialog.setPositiveButton(R.string.preferences_initiate_reset_dialog_positive, new OnClickListener() {
+            @Override
+            public void onClick(final DialogInterface dialog, final int which) {
+                log.info("manually initiated blockchain reset");
+
+                application.resetBlockchain();
+                activity.finish(); // TODO doesn't fully finish prefs on single pane layouts
+            }
+        });
+        dialog.setNegativeButton(R.string.button_dismiss, null);
+        dialog.show();
+    }
+
+    private void handleExtendedPublicKey() {
+        final DeterministicKey extendedKey = application.getWallet().getWatchingKey();
+        final String xpub = String.format(Locale.US, "%s?c=%d&h=bip32",
+                extendedKey.serializePubB58(Constants.NETWORK_PARAMETERS), extendedKey.getCreationTimeSeconds());
+        ExtendedPublicKeyFragment.show(getFragmentManager(), (CharSequence) xpub);
+    }
+>>>>>>> master
 }

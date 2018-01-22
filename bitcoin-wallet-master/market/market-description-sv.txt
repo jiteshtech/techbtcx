@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 <b>Ha alltid dina bitcoin med dig i fickan!</b> Du gör betalningar genom att snabbt scanna en QR-kod eller en NFC-tag. Handlare får betalningar tillförlitligt och omedelbart utan avgifter. Bitcoin Wallet är den första mobila bitcoin-appen, och utan tvekan den mest säkra!
+=======
+<b>Ha alltid dina bitcoin med dig i fickan!</b> Du gör betalningar genom att snabbt scanna en QR-kod. Handlare får betalningar tillförlitligt och omedelbart. Bitcoin Wallet är den första mobila bitcoin-appen, och utan tvekan den mest säkra!
+>>>>>>> master
 
 
 <b>FUNKTIONER</b>
@@ -28,9 +32,14 @@ https://www.transifex.com/bitcoin-wallet/bitcoin-wallet/
 
 <b>REKOMMENDATIONER</b>
 
+<<<<<<< HEAD
 • Många mobila plånböcker baserar sin kod på Bitcoin Walet. Exempelvis: blockchain.info och BTCX.
 • Rekommenderad mobil wallet av https://bitcoin.org
 • Rekommenderad av BitPay och BTCX.
+=======
+• Många mobila plånböcker baserar sin kod på Bitcoin Wallet. Exempelvis: blockchain.info och BTCX.
+• Rekommenderad av BitPay.
+>>>>>>> master
 
 
 <i>Används på egen risk!</i>

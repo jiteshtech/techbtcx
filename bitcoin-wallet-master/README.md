@@ -4,6 +4,12 @@ This project contains several sub-projects:
 
  * __wallet__:
      The Android app itself. This is probably what you're searching for.
+<<<<<<< HEAD
+=======
+ * __native-scrypt__:
+     Native code implementation for Scrypt. The C files are copied from the
+     Java Scrypt project at [GitHub](https://github.com/wg/scrypt).
+>>>>>>> master
  * __market__:
      App description and promo material for the Google Play app store.
  * __integration-android__:

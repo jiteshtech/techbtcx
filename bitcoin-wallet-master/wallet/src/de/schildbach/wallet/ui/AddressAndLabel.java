@@ -24,6 +24,7 @@ import org.bitcoinj.core.AddressFormatException;
 import org.bitcoinj.core.NetworkParameters;
 import org.bitcoinj.core.WrongNetworkException;
 
+<<<<<<< HEAD
 import android.os.Parcel;
 import android.os.Parcelable;
 
@@ -31,10 +32,19 @@ import com.google.common.base.Objects;
 
 import de.schildbach.wallet.Constants;
 import de.schildbach.wallet.util.WalletUtils;
+=======
+import com.google.common.base.Objects;
+
+import de.schildbach.wallet.Constants;
+
+import android.os.Parcel;
+import android.os.Parcelable;
+>>>>>>> master
 
 /**
  * @author Andreas Schildbach
  */
+<<<<<<< HEAD
 public class AddressAndLabel implements Parcelable
 {
 	public final Address address;
@@ -102,4 +112,76 @@ public class AddressAndLabel implements Parcelable
 		address = Address.fromBase58(Constants.NETWORK_PARAMETERS, in.readString());
 		label = in.readString();
 	}
+=======
+public class AddressAndLabel implements Parcelable {
+    public final Address address;
+    public final String label;
+
+    public AddressAndLabel(final Address address, @Nullable final String label) {
+        this.address = address;
+        this.label = label;
+    }
+
+    public AddressAndLabel(final NetworkParameters addressParams, final String address, @Nullable final String label)
+            throws WrongNetworkException, AddressFormatException {
+        this(Address.fromBase58(addressParams, address), label);
+    }
+
+    @Override
+    public boolean equals(final Object o) {
+        if (this == o)
+            return true;
+        if (o == null || getClass() != o.getClass())
+            return false;
+        final AddressAndLabel other = (AddressAndLabel) o;
+        return Objects.equal(this.address, other.address) && Objects.equal(this.label, other.label);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(address, label);
+    }
+
+    @Override
+    public String toString() {
+        final StringBuilder builder = new StringBuilder();
+        builder.append(getClass().getSimpleName());
+        builder.append('[');
+        builder.append(address.toBase58());
+        if (label != null) {
+            builder.append(',');
+            builder.append(label);
+        }
+        builder.append(']');
+        return builder.toString();
+    }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(final Parcel dest, final int flags) {
+        dest.writeString(address.toBase58());
+        dest.writeString(label);
+    }
+
+    public static final Parcelable.Creator<AddressAndLabel> CREATOR = new Parcelable.Creator<AddressAndLabel>() {
+        @Override
+        public AddressAndLabel createFromParcel(final Parcel in) {
+            return new AddressAndLabel(in);
+        }
+
+        @Override
+        public AddressAndLabel[] newArray(final int size) {
+            return new AddressAndLabel[size];
+        }
+    };
+
+    private AddressAndLabel(final Parcel in) {
+        address = Address.fromBase58(Constants.NETWORK_PARAMETERS, in.readString());
+        label = in.readString();
+    }
+>>>>>>> master
 }

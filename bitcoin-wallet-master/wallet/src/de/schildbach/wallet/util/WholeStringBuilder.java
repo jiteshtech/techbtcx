@@ -24,6 +24,7 @@ import android.text.style.StyleSpan;
 /**
  * @author Andreas Schildbach
  */
+<<<<<<< HEAD
 public class WholeStringBuilder extends SpannableStringBuilder
 {
 	public static CharSequence bold(final CharSequence text)
@@ -37,4 +38,16 @@ public class WholeStringBuilder extends SpannableStringBuilder
 
 		setSpan(span, 0, text.length(), SpannableStringBuilder.SPAN_EXCLUSIVE_EXCLUSIVE);
 	}
+=======
+public class WholeStringBuilder extends SpannableStringBuilder {
+    public static CharSequence bold(final CharSequence text) {
+        return new WholeStringBuilder(text, new StyleSpan(Typeface.BOLD));
+    }
+
+    public WholeStringBuilder(final CharSequence text, final Object span) {
+        super(text);
+
+        setSpan(span, 0, text.length(), SpannableStringBuilder.SPAN_EXCLUSIVE_EXCLUSIVE);
+    }
+>>>>>>> master
 }

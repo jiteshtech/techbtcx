@@ -29,7 +29,10 @@ https://www.transifex.com/bitcoin-wallet/bitcoin-wallet/
 <b>SUOSITTELUMME</b>
 
 • Useat mobiililompakot perustuvat Bitcoin Wallet-ohjelman lähdekoodiin, esimerkiksi: blockchain.info ja BTCX.
+<<<<<<< HEAD
 • https://bitcoin.org: suosittelema mobiililompakko
+=======
+>>>>>>> master
 • BitPay:n suosittelema.
 
 

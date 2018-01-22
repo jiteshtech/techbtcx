@@ -19,17 +19,27 @@ package de.schildbach.wallet.ui;
 
 import javax.annotation.Nullable;
 
+<<<<<<< HEAD
+=======
+import de.schildbach.wallet.service.BlockchainService;
+import de.schildbach.wallet.service.BlockchainServiceImpl;
+
+>>>>>>> master
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.IBinder;
+<<<<<<< HEAD
 import de.schildbach.wallet.service.BlockchainService;
 import de.schildbach.wallet.service.BlockchainServiceImpl;
+=======
+>>>>>>> master
 
 /**
  * @author Andreas Schildbach
  */
+<<<<<<< HEAD
 public abstract class AbstractBindServiceActivity extends AbstractWalletActivity
 {
 	@Nullable
@@ -70,4 +80,39 @@ public abstract class AbstractBindServiceActivity extends AbstractWalletActivity
 	{
 		return blockchainService;
 	}
+=======
+public abstract class AbstractBindServiceActivity extends AbstractWalletActivity {
+    @Nullable
+    private BlockchainService blockchainService;
+
+    private final ServiceConnection serviceConnection = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(final ComponentName name, final IBinder binder) {
+            blockchainService = ((BlockchainServiceImpl.LocalBinder) binder).getService();
+        }
+
+        @Override
+        public void onServiceDisconnected(final ComponentName name) {
+            blockchainService = null;
+        }
+    };
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        bindService(new Intent(this, BlockchainServiceImpl.class), serviceConnection, Context.BIND_AUTO_CREATE);
+    }
+
+    @Override
+    protected void onPause() {
+        unbindService(serviceConnection);
+
+        super.onPause();
+    }
+
+    public BlockchainService getBlockchainService() {
+        return blockchainService;
+    }
+>>>>>>> master
 }

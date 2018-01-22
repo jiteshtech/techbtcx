@@ -17,17 +17,26 @@
 
 package de.schildbach.wallet.ui;
 
+<<<<<<< HEAD
+=======
+import de.schildbach.wallet_test.R;
+
+>>>>>>> master
 import android.app.ListFragment;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+<<<<<<< HEAD
 import se.btcx.wallet.R;
+=======
+>>>>>>> master
 
 /**
  * @author Andreas Schildbach
  */
+<<<<<<< HEAD
 public class FancyListFragment extends ListFragment
 {
 	@Override
@@ -42,4 +51,18 @@ public class FancyListFragment extends ListFragment
 		final TextView emptyView = (TextView) getView().findViewById(android.R.id.empty);
 		emptyView.setText(text);
 	}
+=======
+public class FancyListFragment extends ListFragment {
+    @Override
+    public View onCreateView(final LayoutInflater inflater, final ViewGroup container,
+            final Bundle savedInstanceState) {
+        return inflater.inflate(R.layout.fancy_list_content, container, false);
+    }
+
+    @Override
+    public void setEmptyText(final CharSequence text) {
+        final TextView emptyView = (TextView) getView().findViewById(android.R.id.empty);
+        emptyView.setText(text);
+    }
+>>>>>>> master
 }

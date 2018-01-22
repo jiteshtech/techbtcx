@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <preference-headers xmlns:android="http://schemas.android.com/apk/res/android" >
 
+<<<<<<< HEAD
 	<header
 		android:fragment="de.schildbach.wallet.ui.preference.SettingsFragment"
 		android:title="@string/preferences_activity_title" />
@@ -10,5 +11,16 @@
 	<header
 		android:fragment="de.schildbach.wallet.ui.preference.AboutFragment"
 		android:title="@string/about_title" />
+=======
+    <header
+        android:fragment="de.schildbach.wallet.ui.preference.SettingsFragment"
+        android:title="@string/preferences_activity_title" />
+    <header
+        android:fragment="de.schildbach.wallet.ui.preference.DiagnosticsFragment"
+        android:title="@string/preferences_category_diagnostics" />
+    <header
+        android:fragment="de.schildbach.wallet.ui.preference.AboutFragment"
+        android:title="@string/about_title" />
+>>>>>>> master
 
 </preference-headers>

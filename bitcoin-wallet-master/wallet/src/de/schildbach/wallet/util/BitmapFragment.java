@@ -17,15 +17,20 @@
 
 package de.schildbach.wallet.util;
 
+<<<<<<< HEAD
 import javax.annotation.Nullable;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+=======
+import de.schildbach.wallet_test.R;
+>>>>>>> master
 
 import android.app.Activity;
 import android.app.Dialog;
 import android.app.DialogFragment;
 import android.app.FragmentManager;
+<<<<<<< HEAD
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.os.Bundle;
@@ -37,10 +42,19 @@ import android.view.Window;
 import android.widget.ImageView;
 import android.widget.TextView;
 import se.btcx.wallet.R;
+=======
+import android.graphics.Bitmap;
+import android.graphics.drawable.BitmapDrawable;
+import android.os.Bundle;
+import android.view.View;
+import android.view.Window;
+import android.widget.ImageView;
+>>>>>>> master
 
 /**
  * @author Andreas Schildbach
  */
+<<<<<<< HEAD
 public class BitmapFragment extends DialogFragment
 {
 	private static final String FRAGMENT_TAG = BitmapFragment.class.getName();
@@ -146,4 +160,55 @@ public class BitmapFragment extends DialogFragment
 
 		return dialog;
 	}
+=======
+public class BitmapFragment extends DialogFragment {
+    private static final String FRAGMENT_TAG = BitmapFragment.class.getName();
+    private static final String KEY_BITMAP = "bitmap";
+
+    public static void show(final FragmentManager fm, final Bitmap bitmap) {
+        instance(bitmap).show(fm, FRAGMENT_TAG);
+    }
+
+    private static BitmapFragment instance(final Bitmap bitmap) {
+        final BitmapFragment fragment = new BitmapFragment();
+
+        final Bundle args = new Bundle();
+        args.putParcelable(KEY_BITMAP, bitmap);
+        fragment.setArguments(args);
+
+        return fragment;
+    }
+
+    private Activity activity;
+
+    @Override
+    public void onAttach(final Activity activity) {
+        super.onAttach(activity);
+
+        this.activity = activity;
+    }
+
+    @Override
+    public Dialog onCreateDialog(final Bundle savedInstanceState) {
+        final Bundle args = getArguments();
+        final BitmapDrawable bitmap = new BitmapDrawable(getResources(), (Bitmap) args.getParcelable(KEY_BITMAP));
+        bitmap.setFilterBitmap(false);
+
+        final Dialog dialog = new Dialog(activity);
+        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        dialog.setContentView(R.layout.bitmap_dialog);
+        dialog.setCanceledOnTouchOutside(true);
+
+        final ImageView imageView = (ImageView) dialog.findViewById(R.id.bitmap_dialog_image);
+        imageView.setImageDrawable(bitmap);
+        imageView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(final View v) {
+                dismiss();
+            }
+        });
+
+        return dialog;
+    }
+>>>>>>> master
 }

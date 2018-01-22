@@ -25,6 +25,7 @@ import org.junit.Test;
 /**
  * @author Andreas Schildbach
  */
+<<<<<<< HEAD
 public class BluetoothTest
 {
 	@Test
@@ -52,4 +53,29 @@ public class BluetoothTest
 		assertEquals("00112233445566", Bluetooth.getBluetoothMac(queryUri));
 		assertEquals("/abc", Bluetooth.getBluetoothQuery(queryUri));
 	}
+=======
+public class BluetoothTest {
+    @Test
+    public void compressDecompressMac() throws Exception {
+        final String mac = "00:11:22:33:44:55:66";
+        assertEquals(mac, Bluetooth.decompressMac(Bluetooth.compressMac(mac)));
+    }
+
+    @Test
+    public void isBluetoothUri() throws Exception {
+        assertTrue(Bluetooth.isBluetoothUrl("bt:00112233445566"));
+        assertTrue(Bluetooth.isBluetoothUrl("BT:00112233445566"));
+    }
+
+    @Test
+    public void getBluetooth() throws Exception {
+        final String simpleUri = "bt:00112233445566";
+        assertEquals("00112233445566", Bluetooth.getBluetoothMac(simpleUri));
+        assertEquals("/", Bluetooth.getBluetoothQuery(simpleUri));
+
+        final String queryUri = "bt:00112233445566/abc";
+        assertEquals("00112233445566", Bluetooth.getBluetoothMac(queryUri));
+        assertEquals("/abc", Bluetooth.getBluetoothQuery(queryUri));
+    }
+>>>>>>> master
 }
