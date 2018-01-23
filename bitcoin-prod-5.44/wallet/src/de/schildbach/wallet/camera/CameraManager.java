@@ -27,285 +27,271 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.zxing.PlanarYUVLuminanceSource;
-
 import android.annotation.SuppressLint;
 import android.graphics.Rect;
-import android.graphics.RectF;
 import android.hardware.Camera;
 import android.hardware.Camera.CameraInfo;
 import android.hardware.Camera.PreviewCallback;
-import android.view.TextureView;
+import android.view.SurfaceHolder;
+
+import com.google.zxing.PlanarYUVLuminanceSource;
 
 /**
  * @author Andreas Schildbach
  */
-@SuppressWarnings("deprecation")
-public final class CameraManager {
-    private static final int MIN_FRAME_SIZE = 240;
-    private static final int MAX_FRAME_SIZE = 600;
-    private static final int MIN_PREVIEW_PIXELS = 470 * 320; // normal screen
-    private static final int MAX_PREVIEW_PIXELS = 1280 * 720;
+public final class CameraManager
+{
+	private static final int MIN_FRAME_SIZE = 240;
+	private static final int MAX_FRAME_SIZE = 600;
+	private static final int MIN_PREVIEW_PIXELS = 470 * 320; // normal screen
+	private static final int MAX_PREVIEW_PIXELS = 1280 * 720;
 
-    private Camera camera;
-    private CameraInfo cameraInfo = new CameraInfo();
-    private Camera.Size cameraResolution;
-    private Rect frame;
-    private RectF framePreview;
+	private Camera camera;
+	private Camera.Size cameraResolution;
+	private Rect frame;
+	private Rect framePreview;
 
-    private static final Logger log = LoggerFactory.getLogger(CameraManager.class);
+	private static final Logger log = LoggerFactory.getLogger(CameraManager.class);
 
-    public Rect getFrame() {
-        return frame;
-    }
+	public Rect getFrame()
+	{
+		return frame;
+	}
 
-    public RectF getFramePreview() {
-        return framePreview;
-    }
+	public Rect getFramePreview()
+	{
+		return framePreview;
+	}
 
-    public int getFacing() {
-        return cameraInfo.facing;
-    }
+	public Camera open(final SurfaceHolder holder, final boolean continuousAutoFocus) throws IOException
+	{
+		// try back-facing camera
+		camera = Camera.open();
 
-    public int getOrientation() {
-        return cameraInfo.orientation;
-    }
+		// fall back to using front-facing camera
+		if (camera == null)
+		{
+			final int cameraCount = Camera.getNumberOfCameras();
+			final CameraInfo cameraInfo = new CameraInfo();
 
-    public Camera open(final TextureView textureView, final int displayOrientation, final boolean continuousAutoFocus)
-            throws IOException {
-        final int cameraId = determineCameraId();
-        Camera.getCameraInfo(cameraId, cameraInfo);
+			// search for front-facing camera
+			for (int i = 0; i < cameraCount; i++)
+			{
+				Camera.getCameraInfo(i, cameraInfo);
+				if (cameraInfo.facing == Camera.CameraInfo.CAMERA_FACING_FRONT)
+				{
+					camera = Camera.open(i);
+					break;
+				}
+			}
+		}
 
-        log.info("opening camera id {}: {}-facing, camera orientation: {}, display orientation: {}", cameraId,
-                cameraInfo.facing == CameraInfo.CAMERA_FACING_BACK ? "back" : "front", cameraInfo.orientation,
-                displayOrientation);
-        camera = Camera.open(cameraId);
+		camera.setPreviewDisplay(holder);
 
-        if (cameraInfo.facing == Camera.CameraInfo.CAMERA_FACING_FRONT)
-            camera.setDisplayOrientation((720 - displayOrientation - cameraInfo.orientation) % 360);
-        else if (cameraInfo.facing == Camera.CameraInfo.CAMERA_FACING_BACK)
-            camera.setDisplayOrientation((720 - displayOrientation + cameraInfo.orientation) % 360);
-        else
-            throw new IllegalStateException("facing: " + cameraInfo.facing);
+		final Camera.Parameters parameters = camera.getParameters();
 
-        camera.setPreviewTexture(textureView.getSurfaceTexture());
+		final Rect surfaceFrame = holder.getSurfaceFrame();
+		cameraResolution = findBestPreviewSizeValue(parameters, surfaceFrame);
 
-        final Camera.Parameters parameters = camera.getParameters();
+		final int surfaceWidth = surfaceFrame.width();
+		final int surfaceHeight = surfaceFrame.height();
 
-        cameraResolution = findBestPreviewSizeValue(parameters, textureView.getWidth(), textureView.getHeight());
+		final int rawSize = Math.min(surfaceWidth * 2 / 3, surfaceHeight * 2 / 3);
+		final int frameSize = Math.max(MIN_FRAME_SIZE, Math.min(MAX_FRAME_SIZE, rawSize));
 
-        final int width = textureView.getWidth();
-        final int height = textureView.getHeight();
+		final int leftOffset = (surfaceWidth - frameSize) / 2;
+		final int topOffset = (surfaceHeight - frameSize) / 2;
+		frame = new Rect(leftOffset, topOffset, leftOffset + frameSize, topOffset + frameSize);
+		framePreview = new Rect(frame.left * cameraResolution.width / surfaceWidth, frame.top * cameraResolution.height / surfaceHeight, frame.right
+				* cameraResolution.width / surfaceWidth, frame.bottom * cameraResolution.height / surfaceHeight);
 
-        final int rawSize = Math.min(width * 2 / 3, height * 2 / 3);
-        final int frameSize = Math.max(MIN_FRAME_SIZE, Math.min(MAX_FRAME_SIZE, rawSize));
+		final String savedParameters = parameters == null ? null : parameters.flatten();
 
-        final int leftOffset = (width - frameSize) / 2;
-        final int topOffset = (height - frameSize) / 2;
-        frame = new Rect(leftOffset, topOffset, leftOffset + frameSize, topOffset + frameSize);
-        framePreview = new RectF(frame.left * cameraResolution.width / width,
-                frame.top * cameraResolution.height / height, frame.right * cameraResolution.width / width,
-                frame.bottom * cameraResolution.height / height);
+		try
+		{
+			setDesiredCameraParameters(camera, cameraResolution, continuousAutoFocus);
+		}
+		catch (final RuntimeException x)
+		{
+			if (savedParameters != null)
+			{
+				final Camera.Parameters parameters2 = camera.getParameters();
+				parameters2.unflatten(savedParameters);
+				try
+				{
+					camera.setParameters(parameters2);
+					setDesiredCameraParameters(camera, cameraResolution, continuousAutoFocus);
+				}
+				catch (final RuntimeException x2)
+				{
+					log.info("problem setting camera parameters", x2);
+				}
+			}
+		}
 
-        final String savedParameters = parameters == null ? null : parameters.flatten();
+		camera.startPreview();
 
-        try {
-            setDesiredCameraParameters(camera, cameraResolution, continuousAutoFocus);
-        } catch (final RuntimeException x) {
-            if (savedParameters != null) {
-                final Camera.Parameters parameters2 = camera.getParameters();
-                parameters2.unflatten(savedParameters);
-                try {
-                    camera.setParameters(parameters2);
-                    setDesiredCameraParameters(camera, cameraResolution, continuousAutoFocus);
-                } catch (final RuntimeException x2) {
-                    log.info("problem setting camera parameters", x2);
-                }
-            }
-        }
+		return camera;
+	}
 
-        try {
-            camera.startPreview();
-            return camera;
-        } catch (final RuntimeException x) {
-            log.warn("something went wrong while starting camera preview", x);
-            camera.release();
-            throw x;
-        }
-    }
+	public void close()
+	{
+		if (camera != null)
+		{
+			try
+			{
+				camera.stopPreview();
+			}
+			catch (final RuntimeException x)
+			{
+				log.warn("something went wrong while stopping camera preview", x);
+			}
 
-    private int determineCameraId() {
-        final int cameraCount = Camera.getNumberOfCameras();
-        final CameraInfo cameraInfo = new CameraInfo();
+			camera.release();
+		}
+	}
 
-        // prefer back-facing camera
-        for (int i = 0; i < cameraCount; i++) {
-            Camera.getCameraInfo(i, cameraInfo);
-            if (cameraInfo.facing == Camera.CameraInfo.CAMERA_FACING_BACK)
-                return i;
-        }
+	private static final Comparator<Camera.Size> numPixelComparator = new Comparator<Camera.Size>()
+	{
+		@Override
+		public int compare(final Camera.Size size1, final Camera.Size size2)
+		{
+			final int pixels1 = size1.height * size1.width;
+			final int pixels2 = size2.height * size2.width;
 
-        // fall back to front-facing camera
-        for (int i = 0; i < cameraCount; i++) {
-            Camera.getCameraInfo(i, cameraInfo);
-            if (cameraInfo.facing == Camera.CameraInfo.CAMERA_FACING_FRONT)
-                return i;
-        }
+			if (pixels1 < pixels2)
+				return 1;
+			else if (pixels1 > pixels2)
+				return -1;
+			else
+				return 0;
+		}
+	};
 
-        return -1;
-    }
+	private static Camera.Size findBestPreviewSizeValue(final Camera.Parameters parameters, Rect surfaceResolution)
+	{
+		if (surfaceResolution.height() > surfaceResolution.width())
+			surfaceResolution = new Rect(0, 0, surfaceResolution.height(), surfaceResolution.width());
 
-    public void close() {
-        if (camera != null) {
-            try {
-                camera.stopPreview();
-            } catch (final RuntimeException x) {
-                log.warn("something went wrong while stopping camera preview", x);
-            }
+		final float screenAspectRatio = (float) surfaceResolution.width() / (float) surfaceResolution.height();
 
-            camera.release();
-        }
-    }
+		final List<Camera.Size> rawSupportedSizes = parameters.getSupportedPreviewSizes();
+		if (rawSupportedSizes == null)
+			return parameters.getPreviewSize();
 
-    private static final Comparator<Camera.Size> numPixelComparator = new Comparator<Camera.Size>() {
-        @Override
-        public int compare(final Camera.Size size1, final Camera.Size size2) {
-            final int pixels1 = size1.height * size1.width;
-            final int pixels2 = size2.height * size2.width;
+		// sort by size, descending
+		final List<Camera.Size> supportedPreviewSizes = new ArrayList<Camera.Size>(rawSupportedSizes);
+		Collections.sort(supportedPreviewSizes, numPixelComparator);
 
-            if (pixels1 < pixels2)
-                return 1;
-            else if (pixels1 > pixels2)
-                return -1;
-            else
-                return 0;
-        }
-    };
+		Camera.Size bestSize = null;
+		float diff = Float.POSITIVE_INFINITY;
 
-    private static Camera.Size findBestPreviewSizeValue(final Camera.Parameters parameters, int width, int height) {
-        if (height > width) {
-            final int temp = width;
-            width = height;
-            height = temp;
-        }
+		for (final Camera.Size supportedPreviewSize : supportedPreviewSizes)
+		{
+			final int realWidth = supportedPreviewSize.width;
+			final int realHeight = supportedPreviewSize.height;
+			final int realPixels = realWidth * realHeight;
+			if (realPixels < MIN_PREVIEW_PIXELS || realPixels > MAX_PREVIEW_PIXELS)
+				continue;
 
-        final float screenAspectRatio = (float) width / (float) height;
+			final boolean isCandidatePortrait = realWidth < realHeight;
+			final int maybeFlippedWidth = isCandidatePortrait ? realHeight : realWidth;
+			final int maybeFlippedHeight = isCandidatePortrait ? realWidth : realHeight;
+			if (maybeFlippedWidth == surfaceResolution.width() && maybeFlippedHeight == surfaceResolution.height())
+				return supportedPreviewSize;
 
-        final List<Camera.Size> rawSupportedSizes = parameters.getSupportedPreviewSizes();
-        if (rawSupportedSizes == null)
-            return parameters.getPreviewSize();
+			final float aspectRatio = (float) maybeFlippedWidth / (float) maybeFlippedHeight;
+			final float newDiff = Math.abs(aspectRatio - screenAspectRatio);
+			if (newDiff < diff)
+			{
+				bestSize = supportedPreviewSize;
+				diff = newDiff;
+			}
+		}
 
-        // sort by size, descending
-        final List<Camera.Size> supportedPreviewSizes = new ArrayList<Camera.Size>(rawSupportedSizes);
-        Collections.sort(supportedPreviewSizes, numPixelComparator);
+		if (bestSize != null)
+			return bestSize;
+		else
+			return parameters.getPreviewSize();
+	}
 
-        Camera.Size bestSize = null;
-        float diff = Float.POSITIVE_INFINITY;
+	@SuppressLint("InlinedApi")
+	private static void setDesiredCameraParameters(final Camera camera, final Camera.Size cameraResolution, final boolean continuousAutoFocus)
+	{
+		final Camera.Parameters parameters = camera.getParameters();
+		if (parameters == null)
+			return;
 
-        for (final Camera.Size supportedPreviewSize : supportedPreviewSizes) {
-            final int realWidth = supportedPreviewSize.width;
-            final int realHeight = supportedPreviewSize.height;
-            final int realPixels = realWidth * realHeight;
-            if (realPixels < MIN_PREVIEW_PIXELS || realPixels > MAX_PREVIEW_PIXELS)
-                continue;
+		final List<String> supportedFocusModes = parameters.getSupportedFocusModes();
+		final String focusMode = continuousAutoFocus ? findValue(supportedFocusModes, Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE,
+				Camera.Parameters.FOCUS_MODE_CONTINUOUS_VIDEO, Camera.Parameters.FOCUS_MODE_AUTO, Camera.Parameters.FOCUS_MODE_MACRO) : findValue(
+				supportedFocusModes, Camera.Parameters.FOCUS_MODE_AUTO, Camera.Parameters.FOCUS_MODE_MACRO);
+		if (focusMode != null)
+			parameters.setFocusMode(focusMode);
 
-            final boolean isCandidatePortrait = realWidth < realHeight;
-            final int maybeFlippedWidth = isCandidatePortrait ? realHeight : realWidth;
-            final int maybeFlippedHeight = isCandidatePortrait ? realWidth : realHeight;
-            if (maybeFlippedWidth == width && maybeFlippedHeight == height)
-                return supportedPreviewSize;
+		parameters.setPreviewSize(cameraResolution.width, cameraResolution.height);
 
-            final float aspectRatio = (float) maybeFlippedWidth / (float) maybeFlippedHeight;
-            final float newDiff = Math.abs(aspectRatio - screenAspectRatio);
-            if (newDiff < diff) {
-                bestSize = supportedPreviewSize;
-                diff = newDiff;
-            }
-        }
+		camera.setParameters(parameters);
+	}
 
-        if (bestSize != null)
-            return bestSize;
-        else
-            return parameters.getPreviewSize();
-    }
+	public void requestPreviewFrame(final PreviewCallback callback)
+	{
+		camera.setOneShotPreviewCallback(callback);
+	}
 
-    @SuppressLint("InlinedApi")
-    private static void setDesiredCameraParameters(final Camera camera, final Camera.Size cameraResolution,
-            final boolean continuousAutoFocus) {
-        final Camera.Parameters parameters = camera.getParameters();
-        if (parameters == null)
-            return;
+	public PlanarYUVLuminanceSource buildLuminanceSource(final byte[] data)
+	{
+		return new PlanarYUVLuminanceSource(data, cameraResolution.width, cameraResolution.height, framePreview.left, framePreview.top,
+				framePreview.width(), framePreview.height(), false);
+	}
 
-        final List<String> supportedFocusModes = parameters.getSupportedFocusModes();
-        final String focusMode = continuousAutoFocus
-                ? findValue(supportedFocusModes, Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE,
-                        Camera.Parameters.FOCUS_MODE_CONTINUOUS_VIDEO, Camera.Parameters.FOCUS_MODE_AUTO,
-                        Camera.Parameters.FOCUS_MODE_MACRO)
-                : findValue(supportedFocusModes, Camera.Parameters.FOCUS_MODE_AUTO, Camera.Parameters.FOCUS_MODE_MACRO);
-        if (focusMode != null)
-            parameters.setFocusMode(focusMode);
+	public void setTorch(final boolean enabled)
+	{
+		if (enabled != getTorchEnabled(camera))
+			setTorchEnabled(camera, enabled);
+	}
 
-        parameters.setPreviewSize(cameraResolution.width, cameraResolution.height);
+	private static boolean getTorchEnabled(final Camera camera)
+	{
+		final Camera.Parameters parameters = camera.getParameters();
+		if (parameters != null)
+		{
+			final String flashMode = camera.getParameters().getFlashMode();
+			return flashMode != null && (Camera.Parameters.FLASH_MODE_ON.equals(flashMode) || Camera.Parameters.FLASH_MODE_TORCH.equals(flashMode));
+		}
 
-        camera.setParameters(parameters);
-    }
+		return false;
+	}
 
-    public void requestPreviewFrame(final PreviewCallback callback) {
-        try {
-            camera.setOneShotPreviewCallback(callback);
-        } catch (final RuntimeException x) {
-            log.warn("problem requesting preview frame, callback won't be called", x);
-        }
-    }
+	private static void setTorchEnabled(final Camera camera, final boolean enabled)
+	{
+		final Camera.Parameters parameters = camera.getParameters();
 
-    public PlanarYUVLuminanceSource buildLuminanceSource(final byte[] data) {
-        return new PlanarYUVLuminanceSource(data, cameraResolution.width, cameraResolution.height,
-                (int) framePreview.left, (int) framePreview.top, (int) framePreview.width(),
-                (int) framePreview.height(), false);
-    }
+		final List<String> supportedFlashModes = parameters.getSupportedFlashModes();
+		if (supportedFlashModes != null)
+		{
+			final String flashMode;
+			if (enabled)
+				flashMode = findValue(supportedFlashModes, Camera.Parameters.FLASH_MODE_TORCH, Camera.Parameters.FLASH_MODE_ON);
+			else
+				flashMode = findValue(supportedFlashModes, Camera.Parameters.FLASH_MODE_OFF);
 
-    public void setTorch(final boolean enabled) {
-        if (enabled != getTorchEnabled(camera))
-            setTorchEnabled(camera, enabled);
-    }
+			if (flashMode != null)
+			{
+				camera.cancelAutoFocus(); // autofocus can cause conflict
 
-    private static boolean getTorchEnabled(final Camera camera) {
-        final Camera.Parameters parameters = camera.getParameters();
-        if (parameters != null) {
-            final String flashMode = camera.getParameters().getFlashMode();
-            return flashMode != null && (Camera.Parameters.FLASH_MODE_ON.equals(flashMode)
-                    || Camera.Parameters.FLASH_MODE_TORCH.equals(flashMode));
-        }
+				parameters.setFlashMode(flashMode);
+				camera.setParameters(parameters);
+			}
+		}
+	}
 
-        return false;
-    }
+	private static String findValue(final Collection<String> values, final String... valuesToFind)
+	{
+		for (final String valueToFind : valuesToFind)
+			if (values.contains(valueToFind))
+				return valueToFind;
 
-    private static void setTorchEnabled(final Camera camera, final boolean enabled) {
-        final Camera.Parameters parameters = camera.getParameters();
-
-        final List<String> supportedFlashModes = parameters.getSupportedFlashModes();
-        if (supportedFlashModes != null) {
-            final String flashMode;
-            if (enabled)
-                flashMode = findValue(supportedFlashModes, Camera.Parameters.FLASH_MODE_TORCH,
-                        Camera.Parameters.FLASH_MODE_ON);
-            else
-                flashMode = findValue(supportedFlashModes, Camera.Parameters.FLASH_MODE_OFF);
-
-            if (flashMode != null) {
-                camera.cancelAutoFocus(); // autofocus can cause conflict
-
-                parameters.setFlashMode(flashMode);
-                camera.setParameters(parameters);
-            }
-        }
-    }
-
-    private static String findValue(final Collection<String> values, final String... valuesToFind) {
-        for (final String valueToFind : valuesToFind)
-            if (values.contains(valueToFind))
-                return valueToFind;
-
-        return null;
-    }
+		return null;
+	}
 }
