@@ -1,5 +1,0 @@
-<<<<<<< HEAD
-¡Tus bitcoins en tu bolsillo!
-=======
-¡Tus propios Bitcoins, en tu propio bolsillo!
->>>>>>> master

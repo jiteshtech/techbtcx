@@ -1,5 +1,0 @@
-<<<<<<< HEAD
-Vaše vlastní Bitcoiny ve vaší vlastní kapse!
-=======
-Vlastní Bitcoiny ve vlastní kapse!
->>>>>>> master
